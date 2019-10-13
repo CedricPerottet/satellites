@@ -207,9 +207,9 @@ fn main() {
     let n_steps = ((total_simulation_time / dt) + 1.0) as i32;
     for step in 0..n_steps {
         universe.do_time_step(dt);
-        if step % 360 == 0 {
+        if step % 600 == 0 {
             universe.draw();
-            let sleep_millis = time::Duration::from_millis(40);
+            let sleep_millis = time::Duration::from_millis(80);
             thread::sleep(sleep_millis);
         };
     }
