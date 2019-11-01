@@ -6,32 +6,32 @@ struct Planet{
     position : Position,
     speed : Speed,
     force : Force,
-    mass : f32,
-    radius : f32,
+    mass : f64,
+    radius : f64,
 }
 
 #[derive(Debug)]
 struct Position{
-    x : f32,
-    y : f32
+    x : f64,
+    y : f64
 }
 
 #[derive(Debug)]
 struct Speed{
-    x : f32,
-    y : f32
+    x : f64,
+    y : f64
 }
 
 #[derive(Debug)]
 struct Force{
-    x : f32,
-    y : f32,
+    x : f64,
+    y : f64,
 }
 
 #[derive(Debug)]
 struct UnitVector{
-    x : f32,
-    y : f32,
+    x : f64,
+    y : f64,
 }
 
 #[derive(Debug)]
@@ -40,8 +40,8 @@ struct Universe <'a>{
 }
 
 impl Planet {
-    fn distance(&self, other_planet: &Planet) -> f32 {
-        let dist_squared : f32 = 
+    fn distance(&self, other_planet: &Planet) -> f64 {
+        let dist_squared : f64 = 
              (self.position.x - other_planet.position.x) * (self.position.x - other_planet.position.x)
             +(self.position.y - other_planet.position.y) * (self.position.y - other_planet.position.y);
         dist_squared.sqrt()
@@ -64,7 +64,7 @@ impl Planet {
     }
 
     fn gravity_force_applied_by(&self, other_planet: &Planet) -> Force {
-        const G : f32 = 6.6743e-11;
+        const G : f64 = 6.6743e-11;
         let distance = self.distance(other_planet);
         let force_norm = G * self.mass * other_planet.mass / (distance * distance);
         let unit_vector = self.unit_vector_to(other_planet);
@@ -94,12 +94,12 @@ impl Planet {
         self.force.y += force.y;
     }
 
-    fn update_speed(&mut self, dt : f32){
+    fn update_speed(&mut self, dt : f64){
         self.speed.x += self.force.x / self.mass * dt;
         self.speed.y += self.force.y / self.mass * dt;
     }
 
-    fn update_position(&mut self, dt : f32){
+    fn update_position(&mut self, dt : f64){
         self.position.x += self.speed.x * dt;
         self.position.y += self.speed.y * dt;
         println!();
@@ -112,14 +112,14 @@ impl Planet {
         self.mass += other_planet.mass;
     }
 
-    fn energy(&self) -> f32{
-        self.mass * (self.speed.x * self.speed.x + self.speed.y * self.speed.y)
+    fn energy(&self) -> f64{
+        (self.mass as f64) * ((self.speed.x as f64) * (self.speed.x as f64) + (self.speed.y as f64) * (self.speed.y as f64))
     }
 }
 
 impl <'a> Universe<'a>{
 
-    fn do_time_step(&mut self, dt:f32){
+    fn do_time_step(&mut self, dt:f64){
         for i_planet in 0..self.planets.len() {
             self.planets[i_planet].reset_force();
             for j_planet in 0..self.planets.len() {
@@ -167,21 +167,22 @@ impl <'a> Universe<'a>{
                 }
             }
         }
-        for i_planet in planets_crashs.iter() {
+        for i_planet in planets_crashs.iter().rev() {
             let planet_to_remove = self.planets[*i_planet].name.clone();
             println!("{} has been destroyed in the impact...",planet_to_remove);
             self.remove(planet_to_remove);
-            println!("Universe is now : {:?}.",self);
-            let sleep_millis = time::Duration::from_millis(5000);
+            let sleep_millis = time::Duration::from_millis(1000);
             thread::sleep(sleep_millis);
         }
-        for i_planet in planets_freed.iter() {
-            let planet_to_remove = self.planets[*i_planet].name.clone();
-            println!("{} has left gravity field...",planet_to_remove);
-            self.remove(planet_to_remove);
-            println!("Universe is now : {:?}.",self);
-            let sleep_millis = time::Duration::from_millis(5000);
-            thread::sleep(sleep_millis);
+        if planets_crashs.len() == 0 && self.planets.len() > 2{
+            for i_planet in planets_freed.iter().rev() {
+                let planet_to_remove = self.planets[*i_planet].name.clone();
+                println!("{} has left gravity field...",planet_to_remove);
+                self.remove(planet_to_remove);
+                println!("Universe is now : {:?}.",self);
+                let sleep_millis = time::Duration::from_millis(5000);
+                thread::sleep(sleep_millis);
+            }
         }
     }
 
@@ -191,16 +192,16 @@ impl <'a> Universe<'a>{
         let n_pixel_x = 50;
         let n_pixel_y = 30;
         let total_distance_window = 384000000. * 5.;
-        let single_pixel_distance_x = total_distance_window / (n_pixel_x as f32);
-        let single_pixel_distance_y = total_distance_window / (n_pixel_y as f32);
+        let single_pixel_distance_x = total_distance_window / (n_pixel_x as f64);
+        let single_pixel_distance_y = total_distance_window / (n_pixel_y as f64);
         for i_pixel_y in 0..n_pixel_y{
             print!("|");
             for i_pixel_x in 0..n_pixel_x{
                 let mut found_planet = false;
-                let min_x = (i_pixel_x as f32) * single_pixel_distance_x - total_distance_window / 2.;
-                let max_x = ((i_pixel_x + 1) as f32) * single_pixel_distance_x - total_distance_window / 2.;
-                let min_y = (i_pixel_y as f32) * single_pixel_distance_y - total_distance_window / 2.;
-                let max_y = ((i_pixel_y + 1) as f32) * single_pixel_distance_y - total_distance_window / 2.;
+                let min_x = (i_pixel_x as f64) * single_pixel_distance_x - total_distance_window / 2.;
+                let max_x = ((i_pixel_x + 1) as f64) * single_pixel_distance_x - total_distance_window / 2.;
+                let min_y = (i_pixel_y as f64) * single_pixel_distance_y - total_distance_window / 2.;
+                let max_y = ((i_pixel_y + 1) as f64) * single_pixel_distance_y - total_distance_window / 2.;
                 for i_planet in 0..self.planets.len() {
                     if self.planets[i_planet].position.x >= min_x && 
                        self.planets[i_planet].position.x < max_x  &&
@@ -228,7 +229,7 @@ impl <'a> Universe<'a>{
         self.planets.remove(index);
     }
 
-    fn energy(&self) -> f32{
+    fn energy(&self) -> f64{
         let mut energy = 0.;
         for i_planet in 0..self.planets.len() {
             energy += self.planets[i_planet].energy();
@@ -238,7 +239,7 @@ impl <'a> Universe<'a>{
 }
 
 
-fn build_planet(name: String, pos_x: f32, pos_y: f32, spd_x: f32, spd_y: f32, mass: f32, radius: f32) -> Planet {
+fn build_planet(name: String, pos_x: f64, pos_y: f64, spd_x: f64, spd_y: f64, mass: f64, radius: f64) -> Planet {
     Planet {
         name,
         position : Position{x : pos_x, y : pos_y},
@@ -260,7 +261,7 @@ fn main() {
     let mut lune3 : Planet= build_planet("Lune 3".to_string(), -184000000., 0.0, 0.0, -600.0, 7.36e22, 1.737e6);
     let mut lune4 : Planet= build_planet("Lune 4".to_string(), 184000000., 0.0, 0.0, -800.0, 7.36e22, 1.737e6);
     let mut lune5 : Planet= build_planet("Lune 5".to_string(), 584000000., 0.0, 0.0, -400.0, 7.36e22, 1.737e6);
-    let mut lune6 : Planet= build_planet("Lune 6".to_string(), 584000000., 584000000.0, -10000.0, -10000.0, 7.36e22, 1.737e6);
+    let mut lune6 : Planet= build_planet("Lune 6".to_string(), 584000000., 584000000.0, -2000.0, -2000.0, 7.36e22, 1.737e6);
     universe.planets.push(&mut terre);
     universe.planets.push(&mut lune1);
     universe.planets.push(&mut lune2);
@@ -282,6 +283,7 @@ fn main() {
             thread::sleep(sleep_millis);
         };
     }
+    println!("Universe is now : {:?}.",&universe);
 }
                 
             
