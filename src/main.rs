@@ -1,4 +1,4 @@
-use std::{thread, time};
+use std::{thread, time, fmt};
 
 #[derive(Debug)]
 struct Planet{
@@ -38,6 +38,22 @@ struct UnitVector{
 struct Universe <'a>{
     planets : Vec<&'a mut Planet>,
 }
+
+impl fmt::Display for Universe <'_> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for i_planet in 0..self.planets.len() {
+            write!(f, "\n\t{}", self.planets[i_planet])?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for Planet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 
 impl Planet {
     fn distance(&self, other_planet: &Planet) -> f64 {
@@ -106,7 +122,9 @@ impl Planet {
     }
 
     fn absorb(&mut self, other_planet : &mut Planet){
-        self.name.push_str(&other_planet.name);
+        let plus = " + ".to_string();
+        self.name.push_str( &plus);
+        self.name.push_str( &other_planet.name);
         self.speed.x = (other_planet.mass * other_planet.speed.x + self.speed.x * self.mass) / (other_planet.mass + self.mass);
         self.speed.y = (other_planet.mass * other_planet.speed.y + self.speed.y * self.mass) / (other_planet.mass + self.mass);
         self.mass += other_planet.mass;
@@ -179,7 +197,7 @@ impl <'a> Universe<'a>{
                 let planet_to_remove = self.planets[*i_planet].name.clone();
                 println!("{} has left gravity field...",planet_to_remove);
                 self.remove(planet_to_remove);
-                println!("Universe is now : {:?}.",self);
+                println!("Universe is now : {}.",self);
                 let sleep_millis = time::Duration::from_millis(5000);
                 thread::sleep(sleep_millis);
             }
@@ -221,7 +239,7 @@ impl <'a> Universe<'a>{
             print!("|");
             print!("\n");
         }
-        println!("Universe total kinetic energy = {:e}", self.energy());
+        println!("Universe total kinetic energy = {:.2e}", self.energy());
     }
 
     fn remove(&mut self, planet_name : String){
@@ -273,7 +291,7 @@ fn main() {
     // universe.remove("Terre".to_string());
 
     let dt = 10.; // [s]
-    let total_simulation_time = 3600. * 24. * 720.; // [s]
+    let total_simulation_time = 3600. * 24. * 10.; // [s]
     let n_steps = ((total_simulation_time / dt) + 1.0) as i32;
     for step in 0..n_steps {
         universe.do_time_step(dt);
@@ -283,7 +301,7 @@ fn main() {
             thread::sleep(sleep_millis);
         };
     }
-    println!("Universe is now : {:?}.",&universe);
+    println!("Universe is now : {}",&universe);
 }
                 
             
