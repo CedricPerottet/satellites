@@ -4,8 +4,8 @@ pub use godmod::universe::Universe;
 use std::{thread, time};
 
 fn main() {
-    let mut terre: Planet = build_planet("Terre".to_string(), 0.0, 0.0, 0.0, 0.0, 5.97e24, 6.371e6);
-    let mut lune1: Planet = build_planet(
+    let terre: Planet = build_planet("Terre".to_string(), 0.0, 0.0, 0.0, 0.0, 5.97e24, 6.371e6);
+    let lune1: Planet = build_planet(
         "Lune 1".to_string(),
         384000000.,
         0.0,
@@ -14,7 +14,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune2: Planet = build_planet(
+    let lune2: Planet = build_planet(
         "Lune 2".to_string(),
         -384000000.,
         0.0,
@@ -23,7 +23,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune3: Planet = build_planet(
+    let lune3: Planet = build_planet(
         "Lune 3".to_string(),
         -184000000.,
         0.0,
@@ -32,7 +32,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune4: Planet = build_planet(
+    let lune4: Planet = build_planet(
         "Lune 4".to_string(),
         184000000.,
         0.0,
@@ -41,7 +41,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune5: Planet = build_planet(
+    let lune5: Planet = build_planet(
         "Lune 5".to_string(),
         584000000.,
         0.0,
@@ -50,7 +50,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune6: Planet = build_planet(
+    let lune6: Planet = build_planet(
         "Lune 6".to_string(),
         584000000.,
         584000000.0,
@@ -59,7 +59,7 @@ fn main() {
         7.36e22,
         1.737e6,
     );
-    let mut lune7: Planet = build_planet(
+    let lune7: Planet = build_planet(
         "Lune 7".to_string(),
         584000000.,
         584000000.0,
@@ -89,7 +89,7 @@ fn main() {
         universe.do_time_step(dt);
         if step % 600 == 0 {
             universe.draw();
-            let sleep_millis = time::Duration::from_millis(80);
+            let sleep_millis = time::Duration::from_millis(50);
             thread::sleep(sleep_millis);
         };
     }

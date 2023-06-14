@@ -1,4 +1,4 @@
-use super::planet::{self, Planet};
+use super::planet::Planet;
 use std::{fmt, thread, time};
 
 #[derive(Debug)]
