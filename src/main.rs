@@ -1,6 +1,6 @@
 mod godmod;
-pub use godmod::planet::{build_planet, Planet};
-pub use godmod::universe::Universe;
+pub use crate::godmod::planet::{build_planet, Planet};
+pub use crate::godmod::universe::Universe;
 use std::{thread, time};
 
 fn main() {
