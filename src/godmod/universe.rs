@@ -1,5 +1,5 @@
 use super::planet::Planet;
-use std::{fmt, thread, time};
+use std::{fmt, io, thread, time};
 
 #[derive(Debug)]
 pub struct Universe {
@@ -7,17 +7,20 @@ pub struct Universe {
 }
 
 impl Universe {
-    pub fn do_time_step(&mut self, dt: f64) {
-        // for planet in self.planets {}
-
+    pub fn do_time_step(&mut self, dt: f64) -> Result<(), io::Error> {
         let mut planets_after_timestep = Vec::new();
         for planet in &self.planets {
-            planets_after_timestep.push(planet.planet_after_time_step(dt, &self.planets));
+            planets_after_timestep.push(planet.planet_after_time_step(dt, &self.planets)?);
         }
         self.planets = planets_after_timestep;
+        if !self.handle_impacts()? {
+            self.handle_planet_liberation()?;
+        }
+        Ok(())
+    }
 
+    fn handle_impacts(&mut self) -> Result<bool, io::Error> {
         let mut planets_crashs = Vec::new();
-        let mut planets_freed = Vec::new();
         for i_planet in 0..self.planets.len() {
             for j_planet in i_planet + 1..self.planets.len() {
                 if self.planets[i_planet].crashes_on(&self.planets[j_planet]) {
@@ -32,29 +35,35 @@ impl Universe {
                         planet_j.absorb(planet_i);
                         planets_crashs.push(i_planet);
                     }
-                    if planet_i.get_force().x < 100. && planet_i.get_force().y < 100. {
-                        planets_freed.push(i_planet);
-                    }
                 }
             }
         }
         for i_planet in planets_crashs.iter().rev() {
             let planet_to_remove = self.planets[*i_planet].get_name().clone();
             println!("{} has been destroyed in the impact...", planet_to_remove);
-            self.remove(planet_to_remove);
+            self.remove(&planet_to_remove)?;
             let sleep_millis = time::Duration::from_millis(1000);
             thread::sleep(sleep_millis);
         }
-        if planets_crashs.len() == 0 && self.planets.len() > 2 {
-            for i_planet in planets_freed.iter().rev() {
-                let planet_to_remove = self.planets[*i_planet].get_name().clone();
-                println!("{} has left gravity field...", planet_to_remove);
-                self.remove(planet_to_remove);
-                println!("Universe is now : {}.", self);
-                let sleep_millis = time::Duration::from_millis(5000);
-                thread::sleep(sleep_millis);
+        Ok(planets_crashs.len() > 0)
+    }
+
+    fn handle_planet_liberation(&mut self) -> Result<(), io::Error> {
+        let mut planets_freed = Vec::new();
+        for planet in &self.planets {
+            if planet.get_force().x.abs() < 100. && planet.get_force().y.abs() < 100. {
+                println!("{planet}");
+                planets_freed.push(planet.get_name().clone());
             }
         }
+        for planet_freed in planets_freed {
+            println!("{} has left gravity field...", planet_freed);
+            self.remove(&planet_freed)?;
+            println!("Universe is now : {}.", self);
+            let sleep_millis = time::Duration::from_millis(5000);
+            thread::sleep(sleep_millis);
+        }
+        Ok(())
     }
 
     pub fn draw(&self) {
@@ -97,13 +106,17 @@ impl Universe {
         println!("Universe total kinetic energy = {:.2e}", self.energy());
     }
 
-    fn remove(&mut self, planet_name: String) {
+    fn remove(&mut self, planet_name: &str) -> Result<(), io::Error> {
         let index = self
             .planets
             .iter()
-            .position(|x| *x.get_name() == *planet_name)
-            .unwrap();
-        self.planets.remove(index);
+            .position(|x| *x.get_name() == planet_name)
+            .ok_or(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("{} not in planets.", planet_name),
+            ))?;
+        self.planets.swap_remove(index);
+        Ok(())
     }
 
     fn energy(&self) -> f64 {

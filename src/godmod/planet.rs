@@ -1,5 +1,5 @@
 use super::physics::{Force, Position, Speed, UnitVector};
-use std::fmt;
+use std::{fmt, io};
 
 #[derive(Debug)]
 pub struct Planet {
@@ -58,37 +58,45 @@ impl Planet {
         false
     }
 
-    fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> Force {
+    fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> Result<Force, io::Error> {
         const G: f64 = 6.6743e-11;
         let distance = self.distance(other_planet);
         let force_norm = G * self.mass * other_planet.mass / (distance * distance);
         let unit_vector = self.unit_vector_to(other_planet);
         if self.crashes_on(other_planet) {
-            println!(
-                "Unhandled crash between {} and {}. Set zero interaction.",
-                self.name, other_planet.name
-            );
-            Force { x: 0., y: 0. }
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "Unhandled crash between {} and {}.",
+                    self.name, other_planet.name
+                ),
+            ))
         } else {
-            Force {
+            Ok(Force {
                 x: unit_vector.x * force_norm,
                 y: unit_vector.y * force_norm,
-            }
+            })
         }
     }
 
-    fn gravity_force_applied_by_planets(&self, other_planets: &Vec<Planet>) -> Force {
+    fn gravity_force_applied_by_planets(
+        &self,
+        other_planets: &Vec<Planet>,
+    ) -> Result<Force, io::Error> {
         let mut total_force = Force { x: 0., y: 0. };
         for other_planet in other_planets {
             if std::ptr::eq(other_planet, self) {
-                // println!("EGALITE");
                 continue;
             };
-            let force = self.gravity_force_applied_by_planet(other_planet);
+            // let force = self.gravity_force_applied_by_planet(other_planet)?;
+            let force = self
+                .gravity_force_applied_by_planet(other_planet)
+                .unwrap_or(Force { x: 0., y: 0. });
+
             total_force.x += force.x;
             total_force.y += force.y;
         }
-        total_force
+        Ok(total_force)
     }
 
     pub fn reset_force(&mut self) {
@@ -96,10 +104,11 @@ impl Planet {
         self.force.y = 0.;
     }
 
-    pub fn add_force_applied_by(&mut self, other_planet: &Planet) {
-        let force = self.gravity_force_applied_by_planet(other_planet);
+    pub fn add_force_applied_by(&mut self, other_planet: &Planet) -> Result<(), io::Error> {
+        let force = self.gravity_force_applied_by_planet(other_planet)?;
         self.force.x += force.x;
         self.force.y += force.y;
+        Ok(())
     }
 
     pub fn update_speed(&mut self, dt: f64) {
@@ -110,11 +119,14 @@ impl Planet {
     pub fn update_position(&mut self, dt: f64) {
         self.position.x += self.speed.x * dt;
         self.position.y += self.speed.y * dt;
-        println!();
     }
 
-    pub fn planet_after_time_step(&self, dt: f64, other_planets: &Vec<Planet>) -> Planet {
-        let external_force = self.gravity_force_applied_by_planets(other_planets);
+    pub fn planet_after_time_step(
+        &self,
+        dt: f64,
+        other_planets: &Vec<Planet>,
+    ) -> Result<Planet, io::Error> {
+        let external_force = self.gravity_force_applied_by_planets(other_planets)?;
         let new_speed = Speed {
             x: self.speed.x + external_force.x / self.mass * dt,
             y: self.speed.y + external_force.y / self.mass * dt,
@@ -123,14 +135,14 @@ impl Planet {
             x: self.position.x + new_speed.x * dt,
             y: self.position.y + new_speed.y * dt,
         };
-        Planet {
+        Ok(Planet {
             position: new_position,
             speed: new_speed,
             force: external_force,
             name: self.name.clone(),
             mass: self.mass,
             radius: self.radius,
-        }
+        })
     }
 
     pub fn absorb(&mut self, other_planet: &mut Planet) {
