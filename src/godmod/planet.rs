@@ -58,7 +58,7 @@ impl Planet {
         false
     }
 
-    fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> Result<Force, io::Error> {
+    fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> io::Result<Force> {
         const G: f64 = 6.6743e-11;
         let distance = self.distance(other_planet);
         let force_norm = G * self.mass * other_planet.mass / (distance * distance);
@@ -79,10 +79,7 @@ impl Planet {
         }
     }
 
-    fn gravity_force_applied_by_planets(
-        &self,
-        other_planets: &Vec<Planet>,
-    ) -> Result<Force, io::Error> {
+    fn gravity_force_applied_by_planets(&self, other_planets: &Vec<Planet>) -> io::Result<Force> {
         let mut total_force = Force { x: 0., y: 0. };
         for other_planet in other_planets {
             if std::ptr::eq(other_planet, self) {
@@ -104,7 +101,7 @@ impl Planet {
         self.force.y = 0.;
     }
 
-    pub fn add_force_applied_by(&mut self, other_planet: &Planet) -> Result<(), io::Error> {
+    pub fn add_force_applied_by(&mut self, other_planet: &Planet) -> io::Result<()> {
         let force = self.gravity_force_applied_by_planet(other_planet)?;
         self.force.x += force.x;
         self.force.y += force.y;
@@ -125,7 +122,7 @@ impl Planet {
         &self,
         dt: f64,
         other_planets: &Vec<Planet>,
-    ) -> Result<Planet, io::Error> {
+    ) -> io::Result<Planet> {
         let external_force = self.gravity_force_applied_by_planets(other_planets)?;
         let new_speed = Speed {
             x: self.speed.x + external_force.x / self.mass * dt,

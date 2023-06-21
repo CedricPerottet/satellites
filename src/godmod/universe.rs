@@ -7,7 +7,7 @@ pub struct Universe {
 }
 
 impl Universe {
-    pub fn do_time_step(&mut self, dt: f64) -> Result<(), io::Error> {
+    pub fn do_time_step(&mut self, dt: f64) -> io::Result<()> {
         let mut planets_after_timestep = Vec::new();
         for planet in &self.planets {
             planets_after_timestep.push(planet.planet_after_time_step(dt, &self.planets)?);
@@ -19,7 +19,7 @@ impl Universe {
         Ok(())
     }
 
-    fn handle_impacts(&mut self) -> Result<bool, io::Error> {
+    fn handle_impacts(&mut self) -> io::Result<bool> {
         let mut planets_crashs = Vec::new();
         for i_planet in 0..self.planets.len() {
             for j_planet in i_planet + 1..self.planets.len() {
@@ -48,7 +48,7 @@ impl Universe {
         Ok(planets_crashs.len() > 0)
     }
 
-    fn handle_planet_liberation(&mut self) -> Result<(), io::Error> {
+    fn handle_planet_liberation(&mut self) -> io::Result<()> {
         let mut planets_freed = Vec::new();
         for planet in &self.planets {
             if planet.get_force().x.abs() < 100. && planet.get_force().y.abs() < 100. {
@@ -106,7 +106,7 @@ impl Universe {
         println!("Universe total kinetic energy = {:.2e}", self.energy());
     }
 
-    fn remove(&mut self, planet_name: &str) -> Result<(), io::Error> {
+    fn remove(&mut self, planet_name: &str) -> io::Result<()> {
         let index = self
             .planets
             .iter()
