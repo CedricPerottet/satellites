@@ -1,11 +1,11 @@
-mod godmod;
-pub use crate::godmod::planet::{build_planet, Planet};
-pub use crate::godmod::universe::Universe;
+pub use satellite::godmod::planet::Planet;
+pub use satellite::godmod::universe::Universe;
+
 use std::{thread, time};
 
 fn main() {
-    let terre: Planet = build_planet("Terre".to_string(), 0.0, 0.0, 0.0, 0.0, 5.97e24, 6.371e6);
-    let lune1: Planet = build_planet(
+    let terre = Planet::new("Terre".to_string(), 0.0, 0.0, 0.0, 0.0, 5.97e24, 6.371e6).unwrap();
+    let lune1 = Planet::new(
         "Lune 1".to_string(),
         384000000.,
         0.0,
@@ -13,8 +13,9 @@ fn main() {
         1000.0,
         7.36e22,
         1.737e6,
-    );
-    let lune2: Planet = build_planet(
+    )
+    .unwrap();
+    let lune2 = Planet::new(
         "Lune 2".to_string(),
         -384000000.,
         0.0,
@@ -22,8 +23,9 @@ fn main() {
         600.0,
         7.36e22,
         1.737e6,
-    );
-    let lune3: Planet = build_planet(
+    )
+    .unwrap();
+    let lune3 = Planet::new(
         "Lune 3".to_string(),
         -184000000.,
         0.0,
@@ -31,8 +33,9 @@ fn main() {
         -600.0,
         7.36e22,
         1.737e6,
-    );
-    let lune4: Planet = build_planet(
+    )
+    .unwrap();
+    let lune4 = Planet::new(
         "Lune 4".to_string(),
         184000000.,
         0.0,
@@ -40,8 +43,9 @@ fn main() {
         -800.0,
         7.36e22,
         1.737e6,
-    );
-    let lune5: Planet = build_planet(
+    )
+    .unwrap();
+    let lune5 = Planet::new(
         "Lune 5".to_string(),
         584000000.,
         0.0,
@@ -49,8 +53,9 @@ fn main() {
         -400.0,
         7.36e22,
         1.737e6,
-    );
-    let lune6: Planet = build_planet(
+    )
+    .unwrap();
+    let lune6 = Planet::new(
         "Lune 6".to_string(),
         584000000.,
         584000000.0,
@@ -58,8 +63,9 @@ fn main() {
         -2000.0,
         7.36e22,
         1.737e6,
-    );
-    let lune7: Planet = build_planet(
+    )
+    .unwrap();
+    let lune7 = Planet::new(
         "Lune 7".to_string(),
         584000000.,
         584000000.0,
@@ -67,7 +73,8 @@ fn main() {
         -2000.0,
         7.36e22,
         1.737e6,
-    );
+    )
+    .unwrap();
     let mut planets = Vec::new();
     planets.push(terre);
     planets.push(lune1);

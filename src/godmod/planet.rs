@@ -58,10 +58,19 @@ impl Planet {
         false
     }
 
-    fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> io::Result<Force> {
+    pub fn gravity_force_applied_by_planet(&self, other_planet: &Planet) -> io::Result<Force> {
         const G: f64 = 6.6743e-11;
         let distance = self.distance(other_planet);
         let force_norm = G * self.mass * other_planet.mass / (distance * distance);
+        if distance == 0.0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "Distance between {} and {} is 0.0.",
+                    self.name, other_planet.name
+                ),
+            ));
+        }
         let unit_vector = self.unit_vector_to(other_planet);
         if self.crashes_on(other_planet) {
             Err(io::Error::new(
@@ -151,6 +160,7 @@ impl Planet {
         self.speed.y = (other_planet.mass * other_planet.speed.y + self.speed.y * self.mass)
             / (other_planet.mass + self.mass);
         self.mass += other_planet.mass;
+        self.radius = (other_planet.radius.powf(2.0) + self.radius.powf(2.0)).sqrt();
     }
 
     pub fn energy(&self) -> f64 {
@@ -167,26 +177,26 @@ impl Planet {
         spd_y: f64,
         mass: f64,
         radius: f64,
-    ) -> Planet {
-        Planet {
-            name,
-            position: Position { x: pos_x, y: pos_y },
-            speed: Speed { x: spd_x, y: spd_y },
-            force: Force { x: 0., y: 0. },
-            mass,
-            radius,
+    ) -> io::Result<Planet> {
+        if mass < 0.0 {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("{} : mass should be positive, got {}", name, mass),
+            ))
+        } else if radius < 0.0 {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("{} : radius should be positive, got {}.", name, radius),
+            ))
+        } else {
+            Ok(Planet {
+                name,
+                position: Position { x: pos_x, y: pos_y },
+                speed: Speed { x: spd_x, y: spd_y },
+                force: Force { x: 0., y: 0. },
+                mass,
+                radius,
+            })
         }
     }
-}
-
-pub fn build_planet(
-    name: String,
-    pos_x: f64,
-    pos_y: f64,
-    spd_x: f64,
-    spd_y: f64,
-    mass: f64,
-    radius: f64,
-) -> Planet {
-    self::Planet::new(name, pos_x, pos_y, spd_x, spd_y, mass, radius)
 }
